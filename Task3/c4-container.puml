@@ -1,0 +1,51 @@
+@startuml c4-container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Диаграмма контейнеров (C4 Level 2): Онлайн-открытие депозитов — MVP
+
+Person(new_client, "Новый клиент")
+Person(existing_client, "Существующий клиент")
+Person(cc_manager, "Менеджер кол-центра")
+Person(backoffice_manager, "Менеджер бэк-офиса")
+Person(backoffice_staff, "Сотрудники бэк-офиса")
+
+System_Ext(website, "Сайт", "Принимает заявки от новых клиентов")
+System_Ext(callcenter, "Система кол-центра", "Сторонняя платформа кол-центра")
+System_Ext(sms_gateway, "СМС-шлюз", "Отправка СМС")
+
+System_Boundary(ib_boundary, "Интернет-банк") {
+    Container(lb, "Балансировщик нагрузки", "", "Распределяет трафик между серверами\nи дата-центрами (ЦОД 1 / ЦОД 2)")
+    Container(web_app, "Web-приложение", "ASP.NET MVC 4.5 / .NET Framework 4.5", "Аутентификация, существующие операции\n(платежи, текущие счета)")
+    Container(deposit_svc, "Deposit Service", "Микросервис", "Принимает заявки на депозиты;\nинициирует СМС-подтверждение;\nпередаёт заявки в АБС асинхронно")
+    ContainerDb(ib_db, "БД интернет-банка", "MS SQL Server", "Данные сессий, заявок на депозиты")
+}
+
+System_Boundary(abs_boundary, "АБС") {
+    Container(abs_app, "АБС-приложение", "", "Обработка банковских операций;\nучёт депозитов и ставок;\nрабочее место менеджеров бэк-офиса")
+    Container(sms_module, "Модуль СМС-уведомлений", "", "Формирует и отправляет СМС\nчерез СМС-шлюз")
+    ContainerDb(abs_db, "БД АБС", "Oracle / MS SQL", "Счета, депозиты, ставки, транзакции")
+}
+
+Rel(new_client, website, "Оставляет заявку")
+Rel(website, callcenter, "Передаёт заявку на обратный звонок")
+Rel(cc_manager, callcenter, "Обрабатывает заявки")
+Rel(callcenter, abs_app, "Передаёт заявки от новых клиентов")
+
+Rel(existing_client, lb, "HTTPS")
+Rel(lb, web_app, "")
+Rel(web_app, deposit_svc, "REST API\n(заявка на депозит)")
+Rel(web_app, ib_db, "SQL")
+Rel(deposit_svc, ib_db, "SQL")
+Rel(deposit_svc, abs_app, "Асинхронная передача заявки")
+
+Rel(backoffice_manager, abs_app, "Обрабатывает заявки,\nподтверждает условия депозита")
+Rel(backoffice_staff, abs_app, "Управляет ставками депозитов")
+
+Rel(abs_app, abs_db, "SQL")
+Rel(abs_app, sms_module, "")
+Rel(sms_module, sms_gateway, "")
+Rel(sms_gateway, existing_client, "СМС: код подтверждения,\nстатус заявки, открытие депозита")
+
+@enduml
