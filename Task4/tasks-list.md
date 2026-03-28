@@ -1,4 +1,4 @@
-![roadmap](screenshots\roadmap.drawio.png)
+![roadmap](screenshots/roadmap.drawio.png)
 
 # Список крупных задач по системам
 
