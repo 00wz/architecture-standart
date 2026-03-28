@@ -1,0 +1,20 @@
+@startuml c4-context-task4
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Контекстная диаграмма (C4 Level 1): Передача ставок в кол-центр
+
+Person(cc_operator, "Оператор кол-центра", "Консультирует клиентов\nпо актуальным депозитным ставкам")
+Person(partner_operator, "Оператор партнёрского кол-центра", "Консультирует клиентов\nпо ставкам из полученных файлов")
+
+System_Ext(abs, "АБС", "Хранит актуальные депозитные ставки;\nгенерирует файлы ставок для передачи")
+System(callcenter, "Система кол-центра", "Предоставляет операторам доступ\nк актуальным ставкам из АБС")
+System_Ext(partner_callcenter, "Партнёрский кол-центр", "Внешняя информационная система;\nполучает файлы со ставками по SFTP")
+
+Rel(cc_operator, callcenter, "Просматривает актуальные ставки")
+Rel(partner_operator, partner_callcenter, "Просматривает ставки из файлов")
+Rel(abs, callcenter, "Передаёт актуальные ставки")
+Rel(abs, partner_callcenter, "Передаёт файлы со ставками (SFTP)")
+
+@enduml
