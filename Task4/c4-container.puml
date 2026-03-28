@@ -1,0 +1,33 @@
+@startuml c4-container-task4
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Диаграмма контейнеров (C4 Level 2): Передача ставок в кол-центр
+
+Person(cc_operator, "Оператор кол-центра")
+Person(partner_operator, "Оператор партнёрского кол-центра")
+
+System_Boundary(abs_boundary, "АБС") {
+    Container(abs_app, "АБС-приложение", "", "Хранит и управляет депозитными ставками")
+    Container(file_generator, "Генератор файлов ставок", "", "Формирует файл актуальных ставок\nдля передачи партнёрскому кол-центру")
+    ContainerDb(abs_db, "БД АБС", "Oracle / MS SQL", "Ставки депозитов")
+}
+
+System_Boundary(cc_boundary, "Система кол-центра") {
+    Container(cc_app, "Приложение кол-центра", "Сторонняя платформа", "Интерфейс операторов;\nотображает актуальные ставки")
+}
+
+System_Ext(sftp, "SFTP-сервер", "Канал передачи файлов со ставками\nпартнёрскому кол-центру")
+System_Ext(partner_callcenter, "Партнёрский кол-центр", "Внешняя информационная система")
+
+Rel(cc_operator, cc_app, "Просматривает ставки")
+Rel(abs_app, abs_db, "SQL")
+Rel(abs_app, cc_app, "Передаёт актуальные ставки")
+Rel(abs_app, file_generator, "Инициирует генерацию файла")
+Rel(file_generator, abs_db, "Читает актуальные ставки")
+Rel(file_generator, sftp, "Публикует файл со ставками")
+Rel(sftp, partner_callcenter, "Передаёт файл (SFTP)")
+Rel(partner_operator, partner_callcenter, "Просматривает ставки из файлов")
+
+@enduml
